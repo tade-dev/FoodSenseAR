@@ -18,6 +18,19 @@ struct DetectionResult: Identifiable {
     let confidence: Float
     let dangerLevel: DangerLevel
     
+    var formattedLabel: String {
+        switch label {
+        case "scissors_knives":
+            return "Scissors & Knives"
+        case "electrical_outlets_cables":
+            return "Electrical Outlets & Cables"
+        case "cleaning_products":
+            return "Cleaning Products"
+        default:
+            return label.replacingOccurrences(of: "_", with: " ").capitalized
+        }
+    }
+    
     var safetyTip: String {
         switch label {
         case "scissors_knives":

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var arViewModel: ARViewModel
+    @State private var showingHistory = false
     
     var body: some View {
         NavigationStack {
@@ -11,7 +12,14 @@ struct ContentView: View {
                     .environmentObject(arViewModel)
                     .ignoresSafeArea()
                 
-                // Safe/Danger Overlay UI
+                // Live AR Bounds Overlay 
+                if let currentDetection = arViewModel.currentDetection {
+                    AROverlayView(detection: currentDetection)
+                        .transition(.scale(scale: 0.95).combined(with: .opacity))
+                        .animation(.easeInOut(duration: 0.3), value: arViewModel.currentDetection?.id)
+                }
+                
+                // Safe/Danger Status UI Overlay
                 VStack {
                     HStack {
                         Spacer()
@@ -20,14 +28,6 @@ struct ContentView: View {
                                 text: arViewModel.isDetecting ? "Detecting..." : "Paused",
                                 color: arViewModel.isDetecting ? .blue : .gray
                             )
-                            
-                            // Instantly surfaces positive results tracked from ARViewModel
-                            if let currentDetection = arViewModel.currentDetection {
-                                StatusPill(
-                                    text: "⚠️ \(currentDetection.label.replacingOccurrences(of: "_", with: " ").capitalized)",
-                                    color: currentDetection.dangerLevel.color
-                                )
-                            }
                         }
                         .padding()
                     }
@@ -36,7 +36,9 @@ struct ContentView: View {
                     // Controls
                     HStack {
                         Button(action: {
-                            arViewModel.toggleDetection()
+                            withAnimation(.easeInOut) {
+                                arViewModel.toggleDetection()
+                            }
                         }) {
                             Image(systemName: arViewModel.isDetecting ? "pause.circle.fill" : "play.circle.fill")
                                 .resizable()
@@ -47,20 +49,46 @@ struct ContentView: View {
                     }
                     .padding(.bottom, 40)
                 }
+                
+                // Bottom Sheet Danger Card
+                VStack {
+                    Spacer()
+                    if let currentDetection = arViewModel.currentDetection {
+                        DangerCardView(detection: currentDetection) {
+                            withAnimation(.spring()) {
+                                arViewModel.dismissCurrentDetection()
+                            }
+                        }
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
+                }
+                .padding(.bottom, 20)
+                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: arViewModel.currentDetection?.id)
             }
             .navigationTitle("SafeSpace")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: { showingHistory = true }) {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .foregroundColor(.white)
+                            .padding(8)
+                            .background(Color.black.opacity(0.5))
+                            .clipShape(Circle())
+                    }
+                }
+            }
+            .sheet(isPresented: $showingHistory) {
+                HistoryView()
+                    .environmentObject(arViewModel)
+            }
         }
-        // iOS 17 uses the new optional oldValue/newValue property signature logic 
-        // We capture any classification threshold that triggers a non-null DangerLevel hit.
+        // Native observation to print logging optionally alongside AR display
         .onChange(of: arViewModel.currentDetection?.id) { oldValue, newValue in
             if let result = arViewModel.currentDetection {
-                print("⚠️ [DANGER DETECTED]")
-                print("   Label: \(result.label)")
-                print("   Confidence: \(Int(result.confidence * 100))%")
-                print("   Action: \(result.safetyTip)")
+                print("⚠️ [DANGER DETECTED] \(result.formattedLabel) - \(Int(result.confidence * 100))%")
             }
         }
     }
