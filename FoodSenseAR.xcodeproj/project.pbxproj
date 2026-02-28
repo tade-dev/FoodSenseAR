@@ -13,8 +13,6 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1E79B1F82F3683B1007DD959 /* FoodSenseAR */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = FoodSenseAR;
 			sourceTree = "<group>";
 		};

@@ -15,16 +15,17 @@ struct ContentView: View {
                 VStack {
                     HStack {
                         Spacer()
-                        VStack(alignment: .trailing, spacing: 8) {
+                        VStack(alignment: .trailing, spacing: 10) {
                             StatusPill(
                                 text: arViewModel.isDetecting ? "Detecting..." : "Paused",
                                 color: arViewModel.isDetecting ? .blue : .gray
                             )
                             
-                            if !arViewModel.detectedObjects.isEmpty {
+                            // Instantly surfaces positive results tracked from ARViewModel
+                            if let currentDetection = arViewModel.currentDetection {
                                 StatusPill(
-                                    text: "\(arViewModel.detectedObjects.count) Dangers Found",
-                                    color: .red
+                                    text: "⚠️ \(currentDetection.label.replacingOccurrences(of: "_", with: " ").capitalized)",
+                                    color: currentDetection.dangerLevel.color
                                 )
                             }
                         }
@@ -52,6 +53,16 @@ struct ContentView: View {
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
         }
+        // iOS 17 uses the new optional oldValue/newValue property signature logic 
+        // We capture any classification threshold that triggers a non-null DangerLevel hit.
+        .onChange(of: arViewModel.currentDetection?.id) { oldValue, newValue in
+            if let result = arViewModel.currentDetection {
+                print("⚠️ [DANGER DETECTED]")
+                print("   Label: \(result.label)")
+                print("   Confidence: \(Int(result.confidence * 100))%")
+                print("   Action: \(result.safetyTip)")
+            }
+        }
     }
 }
 
@@ -63,11 +74,12 @@ struct StatusPill: View {
         Text(text)
             .font(.caption)
             .fontWeight(.bold)
-            .padding(.horizontal, 12)
+            .padding(.horizontal, 14)
             .padding(.vertical, 8)
-            .background(color.opacity(0.8))
+            .background(color.opacity(0.85))
             .foregroundColor(.white)
             .clipShape(Capsule())
+            .shadow(radius: 2)
     }
 }
 
