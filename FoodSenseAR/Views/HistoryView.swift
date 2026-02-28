@@ -57,5 +57,11 @@ struct HistoryView: View {
                 }
             }
         }
+        .onAppear {
+            arViewModel.setScanning(false)
+        }
+        .onDisappear {
+            arViewModel.setScanning(true)
+        }
     }
 }

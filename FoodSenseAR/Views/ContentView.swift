@@ -43,42 +43,45 @@ struct MainARView: View {
                     .environmentObject(arViewModel)
                     .ignoresSafeArea()
                 
-                // Live AR Bounds Overlay 
+                // Live AR Bounds Overlay (Only when detection locked in)
                 if let currentDetection = arViewModel.currentDetection {
                     AROverlayView(detection: currentDetection)
                         .transition(.scale(scale: 0.95).combined(with: .opacity))
                         .animation(.easeInOut(duration: 0.3), value: arViewModel.currentDetection?.id)
                 }
                 
+                // The new scanning reticle replacing the immediate spawn
+                ScanningIndicatorView()
+                    .environmentObject(arViewModel)
+                
                 // Safe/Danger Status UI Overlay
                 VStack {
-                    HStack {
+                    HStack(alignment: .top) {
                         Spacer()
-                        VStack(alignment: .trailing, spacing: 10) {
+                        VStack(alignment: .trailing, spacing: 14) {
                             StatusPill(
-                                text: arViewModel.isDetecting ? "Detecting..." : "Paused",
-                                color: arViewModel.isDetecting ? .blue : .gray
+                                text: arViewModel.isScanning ? "Detecting..." : "Paused",
+                                color: arViewModel.isScanning ? .blue : .gray
                             )
+                            
+                            Button(action: {
+                                withAnimation(.easeInOut) {
+                                    arViewModel.toggleDetection()
+                                }
+                            }) {
+                                Image(systemName: arViewModel.isScanning ? "pause.circle.fill" : "play.circle.fill")
+                                    .resizable()
+                                    .frame(width: 44, height: 44)
+                                    .foregroundColor(.white)
+                                    .background(Color.black.opacity(0.3))
+                                    .clipShape(Circle())
+                                    .shadow(radius: 4)
+                            }
                         }
                         .padding()
+                        .padding(.top, 4)
                     }
                     Spacer()
-                    
-                    // Controls
-                    HStack {
-                        Button(action: {
-                            withAnimation(.easeInOut) {
-                                arViewModel.toggleDetection()
-                            }
-                        }) {
-                            Image(systemName: arViewModel.isDetecting ? "pause.circle.fill" : "play.circle.fill")
-                                .resizable()
-                                .frame(width: 64, height: 64)
-                                .foregroundColor(.white)
-                                .shadow(radius: 4)
-                        }
-                    }
-                    .padding(.bottom, 40)
                 }
                 
                 // Bottom Sheet Danger Card

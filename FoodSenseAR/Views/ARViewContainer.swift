@@ -13,28 +13,20 @@ struct ARViewContainer: UIViewRepresentable {
         // Debugging / Performance settings
         // arView.showsStatistics = true
         
-        let configuration = ARWorldTrackingConfiguration()
-        if ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth) {
-            configuration.frameSemantics.insert(.sceneDepth)
-        }
-        
-        arView.session.run(configuration)
+        arView.session.run(context.coordinator.configuration)
         
         return arView
     }
     
     func updateUIView(_ uiView: ARSCNView, context: Context) {
-        if arViewModel.isDetecting {
-            // Only boot and run the exact configuration if it was entirely paused
-            if uiView.session.configuration == nil {
-                let configuration = ARWorldTrackingConfiguration()
-                if ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth) {
-                    configuration.frameSemantics.insert(.sceneDepth)
-                }
-                uiView.session.run(configuration)
+        if context.coordinator.wasScanning != arViewModel.isScanning {
+            context.coordinator.wasScanning = arViewModel.isScanning
+            
+            if arViewModel.isScanning {
+                uiView.session.run(context.coordinator.configuration, options: [])
+            } else {
+                uiView.session.pause()
             }
-        } else {
-            uiView.session.pause()
         }
     }
     
@@ -44,6 +36,8 @@ struct ARViewContainer: UIViewRepresentable {
     
     class Coordinator: NSObject, ARSCNViewDelegate {
         var parent: ARViewContainer
+        let configuration: ARWorldTrackingConfiguration
+        var wasScanning: Bool = true
         
         private var detectionService: DetectionService?
         private var lastDetectionTime: TimeInterval = 0
@@ -57,6 +51,12 @@ struct ARViewContainer: UIViewRepresentable {
         
         init(_ parent: ARViewContainer) {
             self.parent = parent
+            
+            self.configuration = ARWorldTrackingConfiguration()
+            if ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth) {
+                self.configuration.frameSemantics.insert(.sceneDepth)
+            }
+            
             super.init()
             
             do {
@@ -70,7 +70,7 @@ struct ARViewContainer: UIViewRepresentable {
         
         func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
             // Respect the global pause toggle
-            guard parent.arViewModel.isDetecting else { return }
+            guard parent.arViewModel.isScanning else { return }
             
             // Step 1: Throttle processing pipeline to occur ~ every 0.5 seconds
             guard time - lastDetectionTime >= detectionInterval else { return }
