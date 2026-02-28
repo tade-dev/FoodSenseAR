@@ -13,6 +13,8 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1E79B1F82F3683B1007DD959 /* FoodSenseAR */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = FoodSenseAR;
 			sourceTree = "<group>";
 		};
@@ -64,8 +66,6 @@
 				1E79B1F82F3683B1007DD959 /* FoodSenseAR */,
 			);
 			name = FoodSenseAR;
-			packageProductDependencies = (
-			);
 			productName = FoodSenseAR;
 			productReference = 1E79B1F62F3683B1007DD959 /* FoodSenseAR.app */;
 			productType = "com.apple.product-type.application";
@@ -256,7 +256,7 @@
 				DEVELOPMENT_TEAM = TU566926VK;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = CAMERA_USAGE_DESCRIPTION;
+				INFOPLIST_KEY_NSCameraUsageDescription = "SafeSpace needs camera layout to scan the room for dangerous household items.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIRequiredDeviceCapabilities = arkit;
@@ -290,7 +290,7 @@
 				DEVELOPMENT_TEAM = TU566926VK;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = CAMERA_USAGE_DESCRIPTION;
+				INFOPLIST_KEY_NSCameraUsageDescription = "SafeSpace needs camera layout to scan the room for dangerous household items.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIRequiredDeviceCapabilities = arkit;
